@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Dress-Up Studio</title>
+  <style>
+    :root{
+      --bg:#f5f7fa;
+      --panel:#ffffff;
+      --primary:#6366f1;
+      --accent:#10b981;
+      --peach:#ff7b54;
+      --text:#1f2937;
+      --shadow:0 4px 14px rgba(0,0,0,.08);
+    }
+    *{box-sizing:border-box;margin:0;font-family:Inter,system-ui,sans-serif}
+    body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;min-height:100vh;align-items:center;padding:2rem}
+    h1{font-weight:700;font-size:2rem;letter-spacing:-.5px;margin-bottom:1.5rem}
+    #wrap{display:flex;gap:2rem;width:100%;max-width:1000px;flex-wrap:wrap;justify-content:center}
+    #stage{flex:1 1 380px;height:420px;background:var(--panel);border-radius:16px;box-shadow:var(--shadow);position:relative;padding:1rem}
+    #base{width:100%;height:100%}
+    #tray{flex:0 1 260px;display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:1rem}
+    .thumb{background:var(--panel);border-radius:12px;box-shadow:var(--shadow);cursor:pointer;transition:.2s;padding:.5rem}
+    .thumb:hover{transform:translateY(-4px)}
+    .thumb svg{width:100%;height:auto}
+    .sticker{position:absolute;cursor:move;z-index:10}
+    #controls{margin-top:1.5rem;display:flex;gap:1rem}
+    button{background:var(--primary);color:#fff;border:none;padding:.75rem 1.5rem;border-radius:8px;font-weight:600;cursor:pointer;transition:.2s}
+    button:hover{background:#4f46e5}
+    #save{background:var(--accent)}
+    #save:hover{background:#059669}
+    @media(max-width:700px){
+      #wrap{flex-direction:column;align-items:center}
+      #tray{grid-template-columns:repeat(4,1fr);width:100%;max-width:380px}
+    }
+  </style>
+</head>
+<body>
+  <h1>Dress-Up Studio</h1>
+
+  <div id="wrap">
+    <div id="stage">
+      <!-- base figure -->
+      <svg id="base" viewBox="0 0 220 320">
+        <circle cx="110" cy="90" r="45" fill="#e2e8f0"/>
+        <rect x="80" y="130" width="60" height="90" rx="12" fill="#cbd5e1"/>
+        <circle cx="95" cy="85" r="5" fill="#1f2937"/><circle cx="125" cy="85" r="5" fill="#1f2937"/>
+        <path d="M100 105 Q110 115 120 105" stroke="#1f2937" stroke-width="3" fill="none"/>
+        <rect x="70" y="220" width="25" height="80" rx="10" fill="#94a3b8"/>
+        <rect x="125" y="220" width="25" height="80" rx="10" fill="#94a3b8"/>
+      </svg>
+    </div>
+
+    <div id="tray"></div>
+  </div>
+
+  <div id="controls">
+    <button id="rand">Surprise outfit</button>
+    <button id="save">Download PNG</button>
+  </div>
+
+  <script>
+    const items=[
+      {name:'Coat',     color:'#6366f1',svg:`<path d="M70 130h80v100h-80z" fill="currentColor"/>`},
+      {name:'Jacket',   color:'#10b981',svg:`<path d="M75 135h70v90h-70z" fill="currentColor"/>`},
+      {name:'Tee',      color:'#f59e0b',svg:`<path d="M80 140h60v70h-60z" fill="currentColor"/>`},
+      {name:'Trousers', color:'#334155',svg:`<rect x="85" y="220" width="20" height="80" rx="8" fill="currentColor"/><rect x="115" y="220" width="20" height="80" rx="8" fill="currentColor"/>`},
+      {name:'Sneakers', color:'#ef4444',svg:`<rect x="75" y="290" width="30" height="20" rx="6" fill="currentColor"/><rect x="115" y="290" width="30" height="20" rx="6" fill="currentColor"/>`},
+      {name:'Cap',      color:'#8b5cf6',svg:`<path d="M60 50 Q110 30 160 50 L150 65 H70 Z" fill="currentColor"/>`}
+    ];
+
+    const tray=document.getElementById('tray');
+    const stage=document.getElementById('stage');
+
+    items.forEach(it=>{
+      const card=document.createElement('div'); card.className='thumb';
+      card.innerHTML=`<svg viewBox="0 0 220 320">${it.svg}</svg>`;
+      card.style.color=it.color;
+      card.title=it.name;
+      card.onclick=()=>wear(it);
+      tray.appendChild(card);
+    });
+
+    function wear(it){
+      const el=document.createElement('div'); el.className='sticker'; el.style.color=it.color;
+      el.innerHTML=`<svg viewBox="0 0 220 320">${it.svg}</svg>`;
+      el.style.left='90px'; el.style.top='130px';
+      stage.appendChild(el);
+      makeDrag(el);
+    }
+
+    function makeDrag(el){
+      let ox,oy;
+      el.onmousedown=e=>{ ox=e.clientX-el.offsetLeft; oy=e.clientY-el.offsetTop;
+        document.onmousemove=ev=>{el.style.left=ev.clientX-ox+'px';el.style.top=ev.clientY-oy+'px';}
+        document.onmouseup=_=>document.onmousemove=null;
+      };
+    }
+
+    document.getElementById('rand').onclick=()=>wear(items[Math.floor(Math.random()*items.length)]);
+    document.getElementById('save').onclick=()=>{
+      import("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js").then(()=>{
+        html2canvas(stage).then(c=>{const a=document.createElement('a'); a.download='outfit.png'; a.href=c.toDataURL(); a.click();});
+      });
+    };
+  </script>
+</body>
+</html>
